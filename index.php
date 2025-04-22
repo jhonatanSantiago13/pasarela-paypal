@@ -9,7 +9,7 @@
             data-sdk-integration-source="developer-studio"
         ></script> -->
     <script
-            src="https://www.paypal.com/sdk/js?client-id=ARh09wWp1vfDTHP4whr2pwM8iOXQ_ssY7fiXXaFqllTImH9Y0HrEf28P57v7QU4X5Jm3rhDMfC-KbKHc&buyer-country=MX&currency=MXN&locale=es_ES&components=buttons"
+            src="https://www.paypal.com/sdk/js?client-id=ARh09wWp1vfDTHP4whr2pwM8iOXQ_ssY7fiXXaFqllTImH9Y0HrEf28P57v7QU4X5Jm3rhDMfC-KbKHc&buyer-country=MX&currency=MXN&locale=es_MX&components=buttons"
             data-sdk-integration-source="developer-studio"
         ></script>
 </head>
@@ -38,7 +38,18 @@
         })
         .then(res => res.json())
         .then(details => {
-            alert('Pago capturado por: ' + details.payer.name.given_name);
+
+            const orderID = details.id;
+            const amount = details.purchase_units[0].amount.value;
+            const payerName = details.payer.name.given_name;
+            const payerSurName = details.payer.name.surname;
+            
+           
+            // alert('Pago capturado por: ' + details.payer.name.given_name);
+
+            const redirectUrl = "payment-news.php?id=" + orderID + "&amount=" + amount + "&name=" + payerName + "&surname=" + payerSurName;
+            // Redirigir a la página de éxito con los parámetros de la transacción
+            window.location.href = redirectUrl;
         });
     },
     onCancel: function(data) {
