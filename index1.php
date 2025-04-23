@@ -2,105 +2,119 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Pago con PayPal - Tarjeta - Pay Later</title>
-    <script
-        src="https://www.paypal.com/sdk/js?client-id=ARh09wWp1vfDTHP4whr2pwM8iOXQ_ssY7fiXXaFqllTImH9Y0HrEf28P57v7QU4X5Jm3rhDMfC-KbKHc&currency=MXN&locale=es_ES&components=buttons&enable-funding=paylater,card"
-        data-sdk-integration-source="developer-studio"
-    ></script>
+    <title>Pago con PayPal - Tarjeta y Pay Later</title>
+    <script 
+        src="https://www.paypal.com/sdk/js?client-id=ARh09wWp1vfDTHP4whr2pwM8iOXQ_ssY7fiXXaFqllTImH9Y0HrEf28P57v7QU4X5Jm3rhDMfC-KbKHc&currency=USD&locale=es_MX&buyer-country=US&components=buttons&enable-funding=paylater,card"
+        data-sdk-integration-source="developer-studio">
+    </script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 30px;
-            background-color: #f2f2f2;
-        }
-        h2 {
-            color: #333;
-        }
-        .paypal-buttons {
-            margin-top: 20px;
+        .paypal-button-container {
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
+    <h2>Selecciona tu método de pago</h2>
 
-    <h2>Selecciona tu forma de pago</h2>
-
-    <div class="paypal-buttons">
-        <!-- Pay Later -->
-        <div id="paylater-button-container"></div>
-
-        <!-- PayPal -->
-        <div id="paypal-button-container"></div>
-
-        <!-- Tarjeta -->
-        <div id="card-button-container"></div>
-    </div>
+    <div class="paypal-button-container" id="paypal-button-paypal"></div>
+    <div class="paypal-button-container" id="paypal-button-paylater"></div>
+    <div class="paypal-button-container" id="paypal-button-card"></div>
 
     <script>
-        // Función general para crear órdenes
+
+        const total = 200; // Monto total a pagar
         const createOrder = () => {
-            return fetch('api/create_order.php', {
-                method: 'POST'
-            })
-            .then(res => res.json())
-            .then(order => order.id);
+            return fetch('api/create_order_us.php', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                    body: JSON.stringify({
+                        amount: total
+                    })
+            
+                })
+                .then(res => res.json())
+                .then(data => data.id);
         };
 
-        // Función general para capturar órdenes
-        const captureOrder = (orderID) => {
-            return fetch(`api/capture_order.php?orderID=${orderID}`, {
+        const onApprove = (data) => {
+            return fetch(`api/capture_order.php?orderID=${data.orderID}`, {
                 method: 'POST'
             })
             .then(res => res.json())
             .then(details => {
-                alert('Pago capturado por: ' + details.payer.name.given_name);
+
+
+                const orderID = details.id;
+                const amount = details.purchase_units[0].amount.value;
+                const payerName = details.payer.name.given_name;
+                const payerSurName = details.payer.name.surname;
+
+                const redirectUrl = "payment-news.php?id=" + orderID + "&amount=" + amount + "&name=" + payerName + "&surname=" + payerSurName;
+                // Redirigir a la página de éxito con los parámetros de la transacción
+                window.location.href = redirectUrl;
+
             });
         };
 
-        // Pay Later
-        if (paypal.FUNDING.PAYLATER) {
-            paypal.Buttons({
-                fundingSource: paypal.FUNDING.PAYLATER,
-                style: {
-                    layout: 'vertical',
-                    color: 'blue',
-                    label: 'paylater',
-                    shape: 'rect'
-                },
-                createOrder: createOrder,
-                onApprove: (data) => captureOrder(data.orderID),
-                onError: (err) => console.error('Error Pay Later:', err)
-            }).render('#paylater-button-container');
-        }
+        const onError = (err) => {
+            console.error('Error:', err);
+            alert('Ocurrió un error. Verifica la consola.');
+        };
 
-        // PayPal
-        paypal.Buttons({
+        // Botón PayPal
+        const paypalButton = paypal.Buttons({
             fundingSource: paypal.FUNDING.PAYPAL,
             style: {
                 layout: 'vertical',
                 color: 'gold',
-                label: 'pay',
-                shape: 'rect'
+                shape: 'rect',
+                label: 'paypal'
             },
-            createOrder: createOrder,
-            onApprove: (data) => captureOrder(data.orderID),
-            onError: (err) => console.error('Error PayPal:', err)
-        }).render('#paypal-button-container');
+            createOrder,
+            onApprove,
+            onError
+        });
 
-        // Tarjeta de crédito o débito
-        if (paypal.FUNDING.CARD) {
-            paypal.Buttons({
-                fundingSource: paypal.FUNDING.CARD,
-                style: {
-                    layout: 'vertical',
-                    color: 'silver',
-                    label: 'pay',
-                    shape: 'rect'
-                },
-                createOrder: createOrder,
-                onApprove: (data) => captureOrder(data.orderID),
-                onError: (err) => console.error('Error Tarjeta:', err)
-            }).render('#card-button-container');
+        if (paypalButton.isEligible()) {
+            paypalButton.render('#paypal-button-paypal');
+        }
+
+        // Botón Pay Later
+        const payLaterButton = paypal.Buttons({
+            fundingSource: paypal.FUNDING.PAYLATER,
+            style: {
+                layout: 'vertical',
+                color: 'gold',
+                shape: 'rect',
+                label: 'pay'
+            },
+            createOrder,
+            onApprove,
+            onError
+        });
+
+        if (payLaterButton.isEligible()) {
+            payLaterButton.render('#paypal-button-paylater');
+        }
+
+        // Botón Tarjeta
+        const cardButton = paypal.Buttons({
+            fundingSource: paypal.FUNDING.CARD,
+            style: {
+                layout: 'vertical',
+                color: 'black', // Solo "black" o "white"
+                shape: 'rect',
+                label: 'pay'
+            },
+            createOrder,
+            onApprove,
+            onError
+        });
+
+        if (cardButton.isEligible()) {
+            cardButton.render('#paypal-button-card');
         }
     </script>
 </body>

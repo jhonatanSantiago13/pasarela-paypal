@@ -18,6 +18,7 @@
     <div id="paypal-button-container"></div>
 
     <script>
+        const total = 4000; // Monto total a pagar (puedes cambiarlo según tus necesidades)
          paypal.Buttons({
     style: {
         shape: "rect",
@@ -27,7 +28,14 @@
     },
     createOrder: function(data, actions) {
         return fetch('api/create_order.php', {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    amount: total
+                })
+
         })
         .then(res => res.json())
         .then(order => order.id);

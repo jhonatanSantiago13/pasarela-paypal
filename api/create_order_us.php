@@ -25,7 +25,7 @@ $request->body = [
     "intent" => "CAPTURE", // El pago se capturará después de la autorización
     "purchase_units" => [[
         "amount" => [
-            "currency_code" => "MXN", // Asegúrate de que la moneda sea compatible
+            "currency_code" => "USD", // Asegúrate de que la moneda sea compatible
             "value" => $amountValue       // El monto del pago
         ]
     ]],
