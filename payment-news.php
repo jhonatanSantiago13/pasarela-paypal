@@ -1,5 +1,10 @@
 <?php 
 
+session_start();
+
+// Aquí se marca la sesión como pago exitoso
+$_SESSION['pago_exitoso'] = true;
+
 $id = $_GET['id'] ;// ID de la transacción
 $amount = $_GET['amount'] ;// Monto de la transacción
 $name = $_GET['name'] ;// Nombre del cliente
@@ -46,20 +51,20 @@ $surname = $_GET['surname'] ;// Apellido del cliente
         <p><strong>Nombre del cliente:</strong><?php echo $surname; ?></p>
         <p>Gracias por tu compra.</p>
     </div>
-
     <script>
-    // Mantén al usuario en la página actual bloqueando el botón atrás constantemente
-    window.onload = function () {
-        history.pushState(null, null, location.href);
-        setInterval(function () {
-            history.pushState(null, null, location.href);
-        }, 100); // Actualiza cada 100ms
-    };
+        
+        // Bloquear botón atrás
+        window.onload = function() {
+            // Reemplaza el historial para que no puedan regresar
+            history.replaceState({}, document.title, window.location.href);
 
-    window.onpopstate = function () {
-        history.pushState(null, null, location.href);
-        alert("No puedes regresar a la página anterior.");
-    };
-</script>
+            // Y si intentan "atrás", los redirige a la página principal
+            window.addEventListener('popstate', function() {
+                window.location.href = '/'; // O donde prefieras mandar al usuario
+            });
+        };
+
+    </script>
+
 </body>
 </html>

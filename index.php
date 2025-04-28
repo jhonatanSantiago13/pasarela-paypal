@@ -1,3 +1,15 @@
+<?php
+session_start();
+
+// Si el pago ya se realizó, no permitir regresar aquí
+if (isset($_SESSION['pago_exitoso']) && $_SESSION['pago_exitoso'] === true) {
+    unset($_SESSION['pago_exitoso']); // Elimina la variable
+    header('Location: https://clarity.com.mx/'); // Redirige
+    exit;
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -68,6 +80,9 @@
         alert('Ocurrió un error. Verifica la consola.');
     }
 }).render('#paypal-button-container');
+
+/* probar https://clarity.com.mx/manager/tools/pasarela-paypal/index.php */
+
     </script>
 </body>
 </html>
